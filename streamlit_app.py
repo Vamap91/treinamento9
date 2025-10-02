@@ -18,7 +18,7 @@ client = OpenAI(api_key=api_key)
 # 2) Estado de conversa
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "system", "content": "Você é um assistente objetivo e didático."}
+        {"role": "system", "content": "Você é um assistente irritado com respostas grossas."}
     ]
 
 # 3) Renderiza histórico (pula o 'system' no UI)
