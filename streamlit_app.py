@@ -1,6 +1,8 @@
 import streamlit as st
 from openai import OpenAI
 
+# Treinamento para o nosso time da Carglass, abaixo temos o passo a passo do que foi feito de maneira simplificada.
+
 st.set_page_config(page_title="Mini GPT didático", page_icon="🤖")
 st.title("🤖 Mini GPT didático (Streamlit + OpenAI)")
 
