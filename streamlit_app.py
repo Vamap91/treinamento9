@@ -1,13 +1,11 @@
 import streamlit as st
 from openai import OpenAI
 
-# Treinamento para o nosso time da Carglass, abaixo temos o passo a passo do que foi feito de maneira simplificada.
-
+# Treinamento para o time da Carglass
 st.set_page_config(page_title="Mini GPT didático", page_icon="🤖")
 st.title("🤖 Mini GPT didático (Streamlit + OpenAI)")
 
-# 1) Lê a chave do Streamlit Secrets (Cloud) ou do secrets.toml (local)
-#    Em deploy no Streamlit Cloud, adicione OPENAI_API_KEY nas Configurações > Secrets.
+# 1) Lê a chave do Streamlit Secrets (Cloud ou local)
 api_key = st.secrets.get("OPENAI_API_KEY", None)
 if not api_key:
     st.warning("Defina OPENAI_API_KEY em st.secrets para continuar.")
@@ -15,40 +13,37 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-# 2) Estado de conversa
-if "messages" not in st.session_state:
+# 2) Sidebar para configurar personalidade
+st.sidebar.header("Configuração")
+personalidade = st.sidebar.text_area(
+    "Defina a personalidade do assistente:",
+    "Você é um assistente educado e didático, que explica de forma simples."
+)
+
+# 3) Inicializa estado da conversa com o system prompt dinâmico
+if "messages" not in st.session_state or st.sidebar.button("🔄 Redefinir conversa"):
     st.session_state.messages = [
-        {"role": "system", "content": "Você é um assistente irritado com respostas grossas."}
+        {"role": "system", "content": personalidade}
     ]
 
-# 3) Renderiza histórico (pula o 'system' no UI)
+# 4) Renderiza histórico
 for m in st.session_state.messages:
     if m["role"] in ("user", "assistant"):
         with st.chat_message("user" if m["role"] == "user" else "assistant"):
             st.markdown(m["content"])
 
-# 4) Entrada do usuário
+# 5) Entrada do usuário
 prompt = st.chat_input("Pergunte algo...")
 if prompt:
-    # mostra no chat
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # 5) Chamada ao modelo (simples e direto)
-    # Dica: para custo/latência, use um modelo leve (ex.: gpt-4o-mini).
     try:
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                # Passa todo o histórico para manter contexto
-                *[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
-                    if m["role"] in ("system", "user", "assistant")
-                ]
-            ],
-            temperature=0.2,
+            messages=st.session_state.messages,
+            temperature=0.6,
         )
         answer = resp.choices[0].message.content.strip()
     except Exception as e:
